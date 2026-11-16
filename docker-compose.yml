@@ -28,7 +28,7 @@ services:
             # Wait for SQL Server to accept a connection (up to about 5 minutes).
             ready=0
             for attempt in {1..60}; do
-              if /opt/mssql-tools18/bin/sqlcmd -S 127.0.0.1 -U sa -P "$$MSSQL_SA_PASSWORD" -No -l 5 -b -Q "SELECT 1" >/dev/null 2>&1; then
+              if /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P "$$MSSQL_SA_PASSWORD" -No -l 5 -b -Q "SELECT 1" >/dev/null 2>&1; then
                 ready=1
                 break
               fi
@@ -49,7 +49,7 @@ services:
               for file in /scripts/SQLServer*.ddl; do
                 [ -f "$$file" ] || continue
                 found=1
-                /opt/mssql-tools18/bin/sqlcmd -S 127.0.0.1 -U sa -P "$$MSSQL_SA_PASSWORD" -No -l 30 -b -i "$$file"
+                /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P "$$MSSQL_SA_PASSWORD" -No -l 30 -b -i "$$file"
               done
               if [ "$$found" -ne 1 ]; then
                 echo "No SQL Server DDL scripts found under /scripts" >&2
