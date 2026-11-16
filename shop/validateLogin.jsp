@@ -13,12 +13,24 @@ if (username != null && !username.trim().isEmpty() &&
     username = username.trim();
     try (Connection con = getConnection())
     {
-        // TODO: Use a PreparedStatement to verify that the supplied
-        //       userid and password match a row in the customer table.
-        //       Set validLogin = true ONLY when a matching row exists.
-        //       Close any statement and result set with try-with-resources.
+        // Parameterized query: user input is never concatenated into the SQL.
         // NOTE: This course dataset has plaintext passwords for demonstration.
         //       Real systems should store securely hashed passwords.
+        String sql = "SELECT userid FROM customer WHERE userid = ? AND password = ?";
+        try (PreparedStatement ps = con.prepareStatement(sql))
+        {
+            ps.setString(1, username);
+            ps.setString(2, password);
+            try (ResultSet rs = ps.executeQuery())
+            {
+                if (rs.next())
+                {
+                    validLogin = true;
+                    // Store the userid exactly as it appears in the database.
+                    username = rs.getString("userid");
+                }
+            }
+        }
     }
     catch (SQLException ex)
     {
