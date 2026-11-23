@@ -14,16 +14,27 @@
 
 <h1>Search for the products you want to buy:</h1>
 
+<%
+// Read search and sort values before the form so the form can keep them
+String name = request.getParameter("productName");
+String sort = request.getParameter("sort");
+if (name == null) name = "";
+if (sort == null) sort = "name";
+%>
+
 <form method="get" action="listprod.jsp">
-    <input type="text" name="productName" size="50">
+    <input type="text" name="productName" size="50" value="<%= escapeHtml(name) %>">
+    <select name="sort">
+        <option value="name" <%= sort.equals("name") ? "selected" : "" %>>Name (A-Z)</option>
+        <option value="price_asc" <%= sort.equals("price_asc") ? "selected" : "" %>>Price: Low to High</option>
+        <option value="price_desc" <%= sort.equals("price_desc") ? "selected" : "" %>>Price: High to Low</option>
+    </select>
     <input type="submit" value="Submit">
     <input type="reset" value="Reset">
     (Leave blank for all products)
 </form>
 
 <%
-String name = request.getParameter("productName");
-
 Connection con = null;
 PreparedStatement pstmt = null;
 ResultSet rst = null;
@@ -35,15 +46,24 @@ try {
 
     String sql = "SELECT productId, productName, productPrice FROM product";
 
-    if (name != null && !name.trim().isEmpty()) {
+    if (!name.trim().isEmpty()) {
         sql += " WHERE productName LIKE ?";
     }
 
-    sql += " ORDER BY productName";
+    // Only hardcoded ORDER BY strings are used, so user input never goes into the SQL
+    String orderBy;
+    if (sort.equals("price_asc")) {
+        orderBy = " ORDER BY productPrice ASC, productName";
+    } else if (sort.equals("price_desc")) {
+        orderBy = " ORDER BY productPrice DESC, productName";
+    } else {
+        orderBy = " ORDER BY productName";
+    }
+    sql += orderBy;
 
     pstmt = con.prepareStatement(sql);
 
-    if (name != null && !name.trim().isEmpty()) {
+    if (!name.trim().isEmpty()) {
         pstmt.setString(1, "%" + name.trim() + "%");
     }
 
